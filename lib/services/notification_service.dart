@@ -87,8 +87,8 @@ class NotificationService {
   }
 
   void markRead(int id) {
-    final n = _notifications.where((n) => n.id == id).firstOrNull;
-    n?.isRead = true;
+    final idx = _notifications.indexWhere((n) => n.id == id);
+    if (idx != -1) _notifications[idx].isRead = true;
   }
 
   void clearAll() => _notifications.clear();

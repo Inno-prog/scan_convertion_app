@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dotted_border/dotted_border.dart';
 import '../models/app_theme.dart';
@@ -65,8 +68,24 @@ class _ConverterScreenState extends State<ConverterScreen> {
 
     try {
       final service = ConversionService();
+
+      // Ensure we have a real filesystem path. Some providers return null
+      // for PlatformFile.path (content URIs). In that case write the bytes
+      // to a temporary file and pass that path to the conversion service.
+      String inputPath = _selectedFile!.path ?? '';
+      if (inputPath.isEmpty || !(await File(inputPath).exists())) {
+        if (_selectedFile!.bytes == null) {
+          throw Exception('Impossible d\'accéder au fichier sélectionné');
+        }
+        final tmpDir = await getTemporaryDirectory();
+        final safeName = p.basename(_selectedFile!.name);
+        final tmpFile = File('${tmpDir.path}/$safeName');
+        await tmpFile.writeAsBytes(_selectedFile!.bytes!);
+        inputPath = tmpFile.path;
+      }
+
       final outputPath = await service.convertFile(
-        filePath: _selectedFile!.path!,
+        filePath: inputPath,
         outputFormat: _selectedFormat!.extension,
         onProgress: (p) {
           if (!mounted) return;

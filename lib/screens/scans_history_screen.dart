@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:open_filex/open_filex.dart';
-import 'package:path/path.dart' as p;
 import '../models/app_theme.dart';
 import '../models/scan_record.dart';
 import '../services/scan_service.dart';

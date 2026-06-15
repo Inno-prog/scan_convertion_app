@@ -35,7 +35,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = true;
+  // theme mode handled elsewhere
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -113,7 +113,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
       if (raw != null && raw.trim().isNotEmpty) {
         setState(() {
           _lastScanValue = raw.trim();
-          _lastScanType = barcode.format?.name ?? 'QR Code';
+          _lastScanType = barcode.format.name;
           _isScanned = true;
         });
         _controller.stop();

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 class ScanRecord {
   final String id;
   final String fileName;

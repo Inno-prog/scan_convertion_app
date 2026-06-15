@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
@@ -268,11 +270,20 @@ Container(
       if (result != null && result.files.isNotEmpty) {
         final newPaths = <String>[];
         for (final file in result.files) {
-          if (file.path != null) {
-            final croppedPath = await _cropImage(file.path!);
-            if (croppedPath != null) {
-              newPaths.add(croppedPath);
-            }
+          String? sourcePath = file.path;
+          if (sourcePath == null || sourcePath.isEmpty || !(await File(sourcePath).exists())) {
+            // If file.path is not available (content URI), write bytes to temp
+            if (file.bytes == null) continue;
+            final tmpDir = await getTemporaryDirectory();
+            final safeName = p.basename(file.name);
+            final tmpFile = File('${tmpDir.path}/$safeName');
+            await tmpFile.writeAsBytes(file.bytes!);
+            sourcePath = tmpFile.path;
+          }
+
+          final croppedPath = await _cropImage(sourcePath);
+          if (croppedPath != null) {
+            newPaths.add(croppedPath);
           }
         }
         if (newPaths.isNotEmpty && mounted) {

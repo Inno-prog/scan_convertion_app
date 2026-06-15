@@ -13,11 +13,24 @@ class ConversionService {
     required String filePath,
     required String outputFormat,
     required Function(double) onProgress,
+    Uint8List? fileBytes,
   }) async {
+    String actualInputPath = filePath;
+    
+    // Si le fichier n'existe pas et que nous avons les bytes, créer un fichier temp
     final file = File(filePath);
-    if (!file.existsSync()) throw Exception('Fichier introuvable');
+    if (!file.existsSync()) {
+      if (fileBytes == null) {
+        throw Exception('Fichier introuvable: $filePath');
+      }
+      final tmpDir = await getTemporaryDirectory();
+      final safeName = filePath.split('/').last;
+      final tmpPath = '${tmpDir.path}/${DateTime.now().millisecondsSinceEpoch}_$safeName';
+      await File(tmpPath).writeAsBytes(fileBytes);
+      actualInputPath = tmpPath;
+    }
 
-    final fileName = filePath.split('/').last;
+    final fileName = actualInputPath.split('/').last;
     final baseName = fileName.contains('.')
         ? fileName.substring(0, fileName.lastIndexOf('.'))
         : fileName;
@@ -34,13 +47,13 @@ class ConversionService {
 
     // Image → PDF (via package pdf)
     if (_isImage(inputExt) && outputFormat == 'pdf') {
-      await _convertImageToPdf(filePath, outputPath, onProgress);
+      await _convertImageToPdf(actualInputPath, outputPath, onProgress);
       return outputPath;
     }
 
     // Images → images (via package image)
     if (_isImage(inputExt) && _isImage(outputFormat)) {
-      await _convertImage(filePath, outputPath, outputFormat, onProgress);
+      await _convertImage(actualInputPath, outputPath, outputFormat, onProgress);
       return outputPath;
     }
 
@@ -49,19 +62,19 @@ class ConversionService {
         _isAudio(outputFormat) || _isVideo(outputFormat) ||
         (_isImage(inputExt) && outputFormat == 'webp') ||
         (_isImage(outputFormat) && !_isImage(inputExt))) {
-      await _convertWithFFmpeg(filePath, outputPath, inputExt, outputFormat, onProgress);
+      await _convertWithFFmpeg(actualInputPath, outputPath, inputExt, outputFormat, onProgress);
       return outputPath;
     }
 
     // Documents texte
     if (_isTextDoc(inputExt) && _isTextDoc(outputFormat)) {
-      await _convertTextDoc(filePath, outputPath, inputExt, outputFormat, onProgress);
+      await _convertTextDoc(actualInputPath, outputPath, inputExt, outputFormat, onProgress);
       return outputPath;
     }
 
     // Fallback : copie simple
     onProgress(0.5);
-    await file.copy(outputPath);
+    await File(actualInputPath).copy(outputPath);
     onProgress(1.0);
     return outputPath;
   }

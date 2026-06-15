@@ -7,7 +7,7 @@ import '../widgets/recent_conversions.dart';
 import 'converter_screen.dart';
 import 'document_scanner_screen.dart';
 import 'qr_scanner_screen.dart';
-import 'scans_history_screen.dart';
+// scans_history_screen is imported where needed
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
