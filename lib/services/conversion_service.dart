@@ -163,6 +163,12 @@ class ConversionService {
   ) async {
     onProgress(0.2);
 
+    // Vérifier que le fichier d'entrée existe
+    final inputFile = File(inputPath);
+    if (!inputFile.existsSync()) {
+      throw Exception('Fichier source introuvable pour FFmpeg: $inputPath');
+    }
+
     final args = _buildArgs(inputPath, outputPath, inputExt, outputFormat);
     onProgress(0.3);
 
